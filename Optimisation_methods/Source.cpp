@@ -6,7 +6,7 @@ double function(double x)
 	result=(1/(atan(cos(4-2*x))+1)); 
 	return result;
 }
-void EP_approx(long double a,long double b,long double accuracy)
+void EP_approx(long double alpha_low,long double alpha_high,long double accuracy)
 {
 	double EP_division, x1, x2,a_res,b_res,x1_res,x2_res,f_result,counter=0,f_x; 
 	EP_division=(b-a)/3;
@@ -41,6 +41,10 @@ void EP_approx(long double a,long double b,long double accuracy)
 	f_x=(b+a)/2;
 	f_result=((function(a)+function(b))/2);
 	cout << f_x << " " << counter << " " << f_result << endl;
+}
+void Steepest_descent(double init_val_x,double init_val_y,double low_x_intvl,double high_x_intvl,double low_y_intvl,double high_y_intvl,double accuracy)
+{
+
 }
 
 int main()
