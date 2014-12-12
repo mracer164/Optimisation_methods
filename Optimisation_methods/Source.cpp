@@ -1,78 +1,134 @@
 #include <iostream>
 #include <math.h>
+#include <string>
 using namespace std;
-double function(double x, double y)
+long double c_der_x,c_der_y,c_x,c_y;
+long double accuracy = 0.0000001;
+long double function(double x, double y)
 {
-	double result=0; 
+	long double result=0; 
 	result=pow(sin(x-0.5),2)-pow(sin(y-0.2),2); 
 	return result;
 }
-double dx_derriv(double x)
+long double dx_derriv(long double x)
 {
-	double result;
-	result=2*cos(x-0.5)*sin(x-0.5);
+	return sin(2 * x - 1);
+}
+long double dy_derriv(long double y)
+{
+	return -sin(2 * y - 0.4);
+}
+long double FindMin(long double a, long double b)
+{
+	return ((a) < (b) ? (a) : (b));
+}
+
+long double FindMax(long double a, long double b)
+{
+	return ((a) > (b) ? (a) : (b));
+}
+
+long double EP_function(double alpha)
+{
+	long double alpha_x=c_x+c_der_x*alpha;
+	long double alpha_y=c_y+c_der_y*alpha;
+	long double result=0;
+	result=function(alpha_x,alpha_y); 
 	return result;
 }
-double dy_derriv(double y)
+long double GS(long double a, long double b, long double epsilon)
 {
-	double result;
-	result=-2*cos(y-0.2)*sin(y-0.2);
-	return result;
-}
-double EP_function(double x, double y, double der_x,double der_y,double alpha)
-{
-	double alpha_x=x-der_x*alpha;
-	double alpha_y=y-der_y*alpha;
-	double result=0;
-	result=pow(sin(alpha_x-0.5),2)-pow(sin(alpha_y-0.2),2); 
-	return result;
-}
-void EP_approx(long double alpha_low,long double alpha_high,long double accuracy)
-{
-	double EP_division, x1, x2,a_res,b_res,x1_res,x2_res,f_result,counter=0,f_x; 
-	EP_division=(alpha_high-alpha_low)/3;
-	x1=alpha_low+EP_division; 
-	x2=alpha_high-EP_division; 
-	a_res=EP_function(alpha_low); 
-	b_res=EP_function(alpha_high); 
-	x1_res=EP_function(x1); 
-	x2_res=EP_function(x2); 
-	while(abs(alpha_high-alpha_low)>=accuracy)
+	if (a > b) return GS(b, a, epsilon);
+
+	long double p = (sqrt(5) - 1) / 2;
+	long double L = b - p * (b - a);
+	long double R = a + p * (b - a);
+	long double buffer;
+
+	while (abs(b - a) > epsilon && (!(abs((abs(b - a) - epsilon)) < epsilon)))
 	{
-		counter++;
-		if(x1_res<=x2_res)
+		if (EP_function(L) < EP_function(R))
 		{
-			a=x1;
-			EP_division=abs(b-a)/3;
-			x1=a+EP_division; 
-			x2=b-EP_division; 
-			x1_res=function(x1); 
-			x2_res=function(x2);
+			b = R;
+			R = L;
+			L = b - p * (b - a);
 		}
 		else
 		{
-			b=x2;
-			EP_division=abs(b-a)/3;
-			x1=a+EP_division; 
-			x2=b-EP_division; 
-			x1_res=function(x1); 
-			x2_res=function(x2); 
+			a = L;
+			L = R;
+			R = a + p * (b - a);
+		}
+		if (L > R)
+		{
+			buffer = L;
+			L = R;
+			R = buffer;
 		}
 	}
-	f_x=(b+a)/2;
-	f_result=((function(a)+function(b))/2);
-	cout << f_x << " " << counter << " " << f_result << endl;
+	return (a + b) / 2;
 }
-void Steepest_descent(double init_val_x,double init_val_y,double low_x_intvl,double high_x_intvl,double low_y_intvl,double high_y_intvl,double accuracy)
+long double alpha_intervals(long double  der_x, long double der_y, long double x_max, long double x_min, long double y_max, long double y_min, long double x, long double y)
 {
+	long double alpha_x1,alpha_x2,alpha_y1,alpha_y2,result;
+	alpha_x1 = (x_max-x)/der_x;
+	alpha_x2 = (x_min-x)/der_x;
+	alpha_y1 = (y_max-y)/der_y;
+	alpha_y2 = (y_min-y)/der_y;
+	c_x=x;
+	c_y=y;
+	c_der_x=der_x;
+	c_der_y=der_y;
+	
+	
+			if(der_x != 0 && der_y != 0)
+			{
+				result = GS(FindMin(FindMax(alpha_x1, alpha_x2), FindMax(alpha_y1, alpha_y2)),FindMax(FindMin(alpha_x1, alpha_x2), FindMin(alpha_y1, alpha_y2)),accuracy);
+			}
+			else if(der_x != 0)
+			{
+				result = GS(FindMax(alpha_x1, alpha_x2),FindMin(alpha_x1, alpha_x2),accuracy);
+			}
+			else if(der_y != 0)
+			{
+				result = GS(FindMax(alpha_y1, alpha_y2),FindMin(alpha_y1, alpha_y2),accuracy);
+			}
+			else result = 0;
+	return result;
+}
+void Steepest_descent(long double init_val_x,long double init_val_y,long double x_min,long double x_max,long double y_min, long double y_max,long double accuracy)
+{
+	long double alpha,x1,x2,y1,y2,f_result_1,f_result_2,der_x,der_y,distance;
+	x1=init_val_x;
+	y1=init_val_y;
+	x2=init_val_x;
+	y2=init_val_y;
+	distance=1+accuracy;
+	alpha=0;
+	while(distance > accuracy)
+	{
+		x1=x2;
+		y1=y2;
+		der_x=dx_derriv(x1);
+		der_y=dy_derriv(y1);
+		der_x=-der_x;
+		der_y=-der_y;
+		alpha=alpha_intervals(der_x,der_y,1,-1,1,-1,x2,y2);
+		x2=x2+alpha*der_x;
+		y2=y2+alpha*der_y;
+		distance=sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
+
+		
+	}
+	cout << "Xmin=[" << x2 << "," << y2 << "]" << endl;
+
 
 }
-
 int main()
 {
-	double init_val_x=0;
-	double init_val_y=0;
-	EP_approx(-1,1,0.00001);
+	long double init_val_x=0.5;
+	long double init_val_y=0.5;
+	Steepest_descent(init_val_x,init_val_y,-1,1,-1,1,accuracy);
 	system("PAUSE");
 	return 0;
 }
